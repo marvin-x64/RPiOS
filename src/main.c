@@ -7,31 +7,51 @@
 #include <stdlib.h>
 
 #include "rpi-gpio.h"
+#include "rpi-systimer.h"
 
 volatile unsigned int *gpio = (unsigned int *)GPIO_BASE;
 
-
 void kernel_main(unsigned int r0, unsigned int r1, unsigned int atags)
 {
-    int loop;
-    unsigned int *counters;
+    int brightness = 255;
+    int speed = 16;
+    int up = 0;
 
     gpio[LED_GPFSEL] |= (1 << LED_GPFBIT);
 
-    counters = malloc(1024 * sizeof(unsigned int));
-    if (counters == NULL)
-        while (1)
-            LED_ON();
-
-    for (loop = 0; loop < 1024; loop++)
-        counters[loop] = 0;
-
     while (1)
     {
-        LED_ON();
-        for (counters[0] = 0; counters[0] < 500000; counters[0]++) ;
+        if (brightness > 0)
+        {
+            LED_OFF();
+            RPI_WaitMicroSeconds(brightness);
+        }
 
-        LED_OFF();
-        for (counters[1] = 0; counters[1] < 500000; counters[1]++) ;
+        if ((255 - brightness) >= 0)
+        {
+            LED_ON();
+            RPI_WaitMicroSeconds(255 - brightness);
+        }
+
+        speed--;
+        if (speed == 0)
+        {
+            speed = 16;
+
+            if (up)
+            {
+                if (brightness < 255)
+                    brightness++;
+                if (brightness == 255)
+                    up = 0;
+            }
+            else
+            {
+                if (brightness)
+                    brightness--;
+                if (brightness == 0)
+                    up = 1;
+            }
+        }
     }
 }

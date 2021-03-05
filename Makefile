@@ -19,7 +19,7 @@ YELLOW	=	'\033[1;33m'
 
 ### Functions
 define convert
-	@echo $(YELLOW)"Converting to image file..."$(NOCOLOR)
+	@echo $(YELLOW)"Converting the ELF output file to a binary image..."$(NOCOLOR)
     @${toolchain}objcopy kernel.$(1).elf -O binary kernel.img
 	@echo $(GREEN)"Image file created."$(NOCOLOR)
 endef
@@ -43,7 +43,6 @@ rpi0:
 	*.S src/*.c -o kernel.rpi0.elf
 	@echo $(GREEN)"Source for RPi0 compiled."$(NOCOLOR)
 	$(call convert,rpi0)
-	$(call disassemble,rpi0)
 
 rpi1:
 	@echo $(YELLOW)"Compiling..."$(NOCOLOR)
@@ -54,7 +53,6 @@ rpi1:
 	*.S src/*.c -o kernel.rpi1.elf
 	@echo $(GREEN)"Source for RPi1 compiled."$(NOCOLOR)
 	$(call convert,rpi1)
-	$(call disassemble,rpi1)
 
 rpi2:
 	@echo $(YELLOW)"Compiling..."$(NOCOLOR)
@@ -65,7 +63,6 @@ rpi2:
 	*.S src/*.c -o kernel.rpi2.elf
 	@echo $(GREEN)"Source for RPi2 compiled."$(NOCOLOR)
 	$(call convert,rpi2)
-	$(call disassemble,rpi2)
 
 # rpi3:
 #	@echo $(YELLOW)"Compiling..."$(NOCOLOR)
@@ -76,7 +73,6 @@ rpi2:
 # 	*.S src/*.c -o kernel.rpi3.elf
 # 	@echo $(GREEN)"Source for RPi3 compiled."$(NOCOLOR)
 #	$(call convert,rpi3)
-#	$(call disassemble,rpi3)
 
 rpi4:
 	@echo $(YELLOW)"Compiling..."$(NOCOLOR)
@@ -87,20 +83,10 @@ rpi4:
 	*.S src/*.c -o kernel.rpi4.elf
 	@echo $(GREEN)"Source for RPi4 compiled."$(NOCOLOR)
 	$(call convert,rpi4)
-	$(call disassemble,rpi4)
 
 clean:
 	@rm -rf *.elf
 	@echo $(RED)".elf files deleted."$(NOCOLOR)
-
-	@rm -rf *.asm
-	@echo $(RED)".asm files deleted."$(NOCOLOR)
-
-	@rm -rf *.nm
-	@echo $(RED)".nm  files deleted."$(NOCOLOR)
-
-	@rm -rf *.hexdump
-	@echo $(RED)".hexdump files deleted."$(NOCOLOR)
 
 	@rm -rf kernel.img
 	@echo $(RED)"kernel.img deleted."$(NOCOLOR)

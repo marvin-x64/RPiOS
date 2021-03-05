@@ -6,16 +6,9 @@
 #ifndef RPI_GPIO_H
 #define RPI_GPIO_H
 
-// The base address of the GPIO peripheral (ARM Physical Address)
-#if defined (RPI0) || defined (RPI1)
-    #define GPIO_BASE       0x20200000UL
-#elif defined (RPI2) || defined (RPI3)
-    #define GPIO_BASE       0x3F200000UL
-#elif defined (RPI4)
-    #define GPIO_BASE       0xFE200000UL
-#else
-    #error Unknown RPI Model!
-#endif
+#include "rpi-base.h"
+
+#define GPIO_BASE           (PER_BASE + 0x200000UL)
 
 #if defined (RPI1) && !defined (IOBPLUS)
     #define LED_GPFSEL      GPIO_GPFSEL1
