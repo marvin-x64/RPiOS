@@ -8,7 +8,6 @@ cflags	=	-g \
 			-mfloat-abi=hard \
 			-O0
 
-#lflags	=	-Wl,-T,rpi.x
 lflags	=	-Wl,-z,max-page-size=0x04
 
 ### Color constants
@@ -41,7 +40,7 @@ rpi0:
 	-mfpu=vfp \
 	-march=armv6zk \
 	-mtune=arm1176jzf-s \
-	src/*.S src/*.c -o kernel.rpi0.elf
+	*.S src/*.c -o kernel.rpi0.elf
 	@echo $(GREEN)"Source for RPi0 compiled."$(NOCOLOR)
 	$(call convert,rpi0)
 	$(call disassemble,rpi0)
@@ -52,7 +51,7 @@ rpi1:
 	-mfpu=vfp \
 	-march=armv6zk \
 	-mtune=arm1176jzf-s \
-	src/*.S src/*.c -o kernel.rpi1.elf
+	*.S src/*.c -o kernel.rpi1.elf
 	@echo $(GREEN)"Source for RPi1 compiled."$(NOCOLOR)
 	$(call convert,rpi1)
 	$(call disassemble,rpi1)
@@ -63,7 +62,7 @@ rpi2:
 	-mfpu=neon-vfpv4 \
 	-march=armv7-a \
 	-mtune=cortex-a7 \
-	src/*.S src/*.c -o kernel.rpi2.elf
+	*.S src/*.c -o kernel.rpi2.elf
 	@echo $(GREEN)"Source for RPi2 compiled."$(NOCOLOR)
 	$(call convert,rpi2)
 	$(call disassemble,rpi2)
@@ -74,7 +73,7 @@ rpi2:
 # 	-mfpu=crypto-neon-fp-armv8 \
 # 	-march=armv8-a+crc \
 # 	-mcpu=cortex-a53 \
-# 	src/*.S src/*.c -o kernel.rpi3.elf
+# 	*.S src/*.c -o kernel.rpi3.elf
 # 	@echo $(GREEN)"Source for RPi3 compiled."$(NOCOLOR)
 #	$(call convert,rpi3)
 #	$(call disassemble,rpi3)
@@ -85,7 +84,7 @@ rpi4:
 	-mfpu=crypto-neon-fp-armv8 \
 	-march=armv8-a+crc \
 	-mcpu=cortex-a72 \
-	src/*.S src/*.c -o kernel.rpi4.elf
+	*.S src/*.c -o kernel.rpi4.elf
 	@echo $(GREEN)"Source for RPi4 compiled."$(NOCOLOR)
 	$(call convert,rpi4)
 	$(call disassemble,rpi4)
@@ -100,8 +99,8 @@ clean:
 	@rm -rf *.nm
 	@echo $(RED)".nm  files deleted."$(NOCOLOR)
 
-	@rm -rf kernel.img
-	@echo $(RED)".img file deleted."$(NOCOLOR)
-
 	@rm -rf *.hexdump
-	@echo $(RED)".hexdump file deleted."$(NOCOLOR)
+	@echo $(RED)".hexdump files deleted."$(NOCOLOR)
+
+	@rm -rf kernel.img
+	@echo $(RED)"kernel.img deleted."$(NOCOLOR)
