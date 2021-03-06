@@ -69,9 +69,38 @@
 .equ    MAINID_ARMV7,           0x410FC073
 .equ    MAINID_ARMV8,           0x410FD034
 
+// See the following: https://github.com/raspberrypi/tools/blob/master/armstubs/armstub7.S
+.equ    GIC_DISTB,              0xff841000
+.equ    GICC_PMR,               0x4
+.equ    GICD_CTRLR,             0x0
+.equ    GICD_IGROUPR,           0x80
+.equ    GIC_CPUB_offset,        0x1000
+
+#define PRESCALER_2711	0xff800008
+#define MBOX_2711	0xff8000cc
+
 // At the start address we have a "jump table", specifically laid out to allow jump to an address that is stored in
 // memory. This table must be laid out exactly as shown (including the instruction ldr pc,)
 _start:
+    ldr pc, _reset_h
+    ldr pc, _undefined_instruction_vector_h
+    ldr pc, _software_interrupt_vector_h
+    ldr pc, _prefetch_abort_vector_h
+    ldr pc, _data_abort_vector_h
+    ldr pc, _unused_handler_h
+    ldr pc, _interrupt_vector_h
+    ldr pc, _fast_interrupt_vector_h
+
+_reset_h:                           .word   _reset_
+_undefined_instruction_vector_h:    .word   undefined_instruction_vector
+_software_interrupt_vector_h:       .word   software_interrupt_vector
+_prefetch_abort_vector_h:           .word   prefetch_abort_vector
+_data_abort_vector_h:               .word   data_abort_vector
+_unused_handler_h:                  .word   _reset_
+_interrupt_vector_h:                .word   interrupt_vector
+_fast_interrupt_vector_h:           .word   fast_interrupt_vector
+
+_reset_:
     // Determine what mode the cpu has started up in. When we get to the very start of the ARM execution we can
     // extract the Current Program Status Register value and mask off the Mode field which is defined in the ARM
     // Architecture Reference Manual for ARMV6 ARMV7 and ARMV8 as M[4:0] - in other words the 5 lowest bits
@@ -93,7 +122,7 @@ _start:
     mrc p15, 0, r11, c0, c0, 0
     ldr r10, =#MAINID_ARMV6
     cmp r11, r10
-    beq _setup_stack
+    beq _setup_interrupt_table
 
     // Did we start up in hypervisor mode? If we didn't go ahead an park the cpus, we can then get back to SVC mode
     // later on
@@ -117,7 +146,20 @@ _multicore_park:
     ands r12, #0x3
     bne _inf_loop
 
-_setup_stack:
+_setup_interrupt_table:
+
+    mov     r0, #0x8000
+    mov     r1, #0x0000
+    ldmia   r0!,{r2, r3, r4, r5, r6, r7, r8, r9}
+    stmia   r1!,{r2, r3, r4, r5, r6, r7, r8, r9}
+    ldmia   r0!,{r2, r3, r4, r5, r6, r7, r8, r9}
+    stmia   r1!,{r2, r3, r4, r5, r6, r7, r8, r9}
+
+    // We're going to use interrupt mode, so setup the interrupt mode
+    // stack pointer which differs to the application stack pointer:
+    mov r0, #(CPSR_MODE_IRQ | CPSR_IRQ_INHIBIT | CPSR_FIQ_INHIBIT )
+    msr cpsr_c, r0
+    ldr sp, =0x7000
 
     // Switch back to supervisor mode (our application mode) and
     // set the stack pointer. Remember that the stack works its way
@@ -125,7 +167,7 @@ _setup_stack:
     // application.
     mov r0, #(CPSR_MODE_SVR | CPSR_IRQ_INHIBIT | CPSR_FIQ_INHIBIT )
     msr cpsr_c, r0
-    mov sp, #0x8000
+    ldr sp, =0x8000
 
     // The c-startup function which we never return from. This function will
     // initialise the ro data section (most things that have the const
@@ -140,6 +182,9 @@ _inf_loop:
 
 // A 32-bit value that represents the processor mode at startup
 _cpsr_startup_mode:  .word    0x0
+_osc:                .word    54000000
+_value:              .word    0x63fff
+_mbox:               .word    MBOX_2711
 
 _get_stack_pointer:
     // Return the stack pointer value
@@ -147,4 +192,13 @@ _get_stack_pointer:
     ldr     r0, [sp]
 
     // Return from the function
+    mov     pc, lr
+
+
+_enable_interrupts:
+    mrs     r0, cpsr
+    bic     r0, r0, #CPSR_IRQ_INHIBIT
+    msr     cpsr_c, r0
+    cpsie   i
+
     mov     pc, lr

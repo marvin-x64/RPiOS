@@ -6,52 +6,41 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "rpi-gpio.h"
-#include "rpi-systimer.h"
+#include "gic-400.h"
 
-volatile unsigned int *gpio = (unsigned int *)GPIO_BASE;
+#include "rpi-gpio.h"
+#include "rpi-armtimer.h"
+#include "rpi-systimer.h"
+#include "rpi-interrupts.h"
+
+extern void _enable_interrupts(void);
 
 void kernel_main(unsigned int r0, unsigned int r1, unsigned int atags)
 {
-    int brightness = 255;
-    int speed = 16;
-    int up = 0;
+    RPI_SetGpioPinFunction(LED_GPIO, FS_OUTPUT);
+    RPI_SetGpioHi(LED_GPIO);
 
-    gpio[LED_GPFSEL] |= (1 << LED_GPFBIT);
+#ifdef RPI4
+    gic400_init(0xFF840000UL);
+#endif
+
+    RPI_EnableARMTimerInterrupt();
+
+#if defined(RPI4)
+    RPI_GetArmTimer()->Load = 0x4000;
+#else
+    RPI_GetArmTimer()->Load = 0x400;
+#endif
+
+    RPI_GetArmTimer()->Control =
+        RPI_ARMTIMER_CTRL_23BIT |
+        RPI_ARMTIMER_CTRL_ENABLE |
+        RPI_ARMTIMER_CTRL_INT_ENABLE |
+        RPI_ARMTIMER_CTRL_PRESCALE_256;
+
+    _enable_interrupts();
 
     while (1)
     {
-        if (brightness > 0)
-        {
-            LED_OFF();
-            RPI_WaitMicroSeconds(brightness);
-        }
-
-        if ((255 - brightness) >= 0)
-        {
-            LED_ON();
-            RPI_WaitMicroSeconds(255 - brightness);
-        }
-
-        speed--;
-        if (speed == 0)
-        {
-            speed = 16;
-
-            if (up)
-            {
-                if (brightness < 255)
-                    brightness++;
-                if (brightness == 255)
-                    up = 0;
-            }
-            else
-            {
-                if (brightness)
-                    brightness--;
-                if (brightness == 0)
-                    up = 1;
-            }
-        }
     }
 }

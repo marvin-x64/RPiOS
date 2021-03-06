@@ -10,7 +10,7 @@
 
 #include "rpi-base.h"
 
-#define RPI_SYSTIMER_BASE (PER_BASE + 0x3000UL)
+#define RPI_SYSTIMER_BASE (PERIPHERAL_BASE + 0x3000UL)
 
 typedef struct
 {
