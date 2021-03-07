@@ -90,8 +90,19 @@ void kernel_main( unsigned int r0, unsigned int r1, unsigned int atags )
 
     /* Clock Frequency */
     RPI_PropertyInit();
+    RPI_PropertyAddTag(TAG_GET_MAX_CLOCK_RATE, TAG_CLOCK_ARM);
+    RPI_PropertyProcess();
+
+    mp = RPI_PropertyGet( TAG_GET_MAX_CLOCK_RATE );
+
+    RPI_PropertyInit();
+    RPI_PropertyAddTag( TAG_SET_CLOCK_RATE, TAG_CLOCK_ARM, mp->data.buffer_32[1] );
+    RPI_PropertyProcess();
+
+    RPI_PropertyInit();
     RPI_PropertyAddTag(TAG_GET_CLOCK_RATE, TAG_CLOCK_ARM);
     RPI_PropertyProcess();
+
     if( mp = RPI_PropertyGet(TAG_GET_CLOCK_RATE) ) {
         printf("ARM  Frequency: %dMHz\r\n", (mp->data.buffer_32[1] / 1000000));
     }
@@ -108,6 +119,12 @@ void kernel_main( unsigned int r0, unsigned int r1, unsigned int atags )
     const char* rpi_types[] = {
         "1A", "1B", "1A+", "1B+", "2B", "ALPHA", "CM1", "{7}", "3B", "Zero", "CM3", "{11}", "Zero W", "3B+",
         "3A+", "-", "CM3+", "4B" };
+
+    const char* rpi_memories[] = {
+        "256MB", "512MB", "1GiB", "2GiB", "4GiB", "8GiB" };
+
+    const char* rpi_manufacturers[] = {
+        "Sony UK", "Egoman", "Embest", "Sony Japan", "Embest", "Stadium" };
 
     const char* rpi_models[] = {
         "-", "-",
@@ -129,12 +146,6 @@ void kernel_main( unsigned int r0, unsigned int r1, unsigned int atags )
         "CM1 1.0 512MB Embest",
         "RPI1A+ 1.1 256MB/512MB Embest",
     };
-
-    const char* rpi_memories[] = {
-        "256MB", "512MB", "1GiB", "2GiB", "4GiB", "8GiB" };
-
-    const char* rpi_manufacturers[] = {
-        "Sony UK", "Egoman", "Embest", "Sony Japan", "Embest", "Stadium" };
 
     if( mp = RPI_PropertyGet( TAG_GET_BOARD_REVISION ) ) {
         uint32_t revision = mp->data.value_32;
