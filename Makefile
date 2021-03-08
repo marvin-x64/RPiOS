@@ -4,11 +4,9 @@ toolchain = arm-none-eabi-
 
 ### FLAGS
 cflags	=	-g \
+			-O4 \
 			-nostartfiles \
-			-mfloat-abi=hard \
-			-O0
-
-lflags	=	-Wl,-z,max-page-size=0x04
+			-mfloat-abi=hard
 
 ### Color constants
 NOCOLOR	=	'\033[0m'
@@ -26,9 +24,9 @@ endef
 
 define disassemble
 	@echo $(YELLOW)"Disassembling..."$(NOCOLOR)
-	@${toolchain}objdump -D kernel.$(1).elf > kernel.$(1).asm
-	@${toolchain}nm kernel.$(1).elf > kernel.$(1).nm
-	@hexdump kernel.img > kernel.img.hexdump
+	@${toolchain}objdump -l -S -D kernel.$(1).elf > kernel.$(1).asm
+	@#${toolchain}nm kernel.$(1).elf > kernel.$(1).nm
+	@#hexdump kernel.img > kernel.img.hexdump
 	@echo $(GREEN)"Disassembled."$(NOCOLOR)
 endef
 
@@ -36,13 +34,14 @@ endef
 
 rpi0:
 	@echo $(YELLOW)"Compiling..."$(NOCOLOR)
-	@${toolchain}gcc ${cflags} ${lflags} -DRPI0 \
+	@${toolchain}gcc ${cflags} -DRPI0 \
 	-mfpu=vfp \
 	-march=armv6zk \
 	-mtune=arm1176jzf-s \
-	*.S src/*.c -o kernel.rpi0.elf
+	src/*.S src/*.c -o kernel.rpi0.elf
 	@echo $(GREEN)"Source for RPi0 compiled."$(NOCOLOR)
 	$(call convert,rpi0)
+	$(call disassemble,rpi0)
 
 rpi1:
 	@echo $(YELLOW)"Compiling..."$(NOCOLOR)
@@ -50,9 +49,10 @@ rpi1:
 	-mfpu=vfp \
 	-march=armv6zk \
 	-mtune=arm1176jzf-s \
-	*.S src/*.c -o kernel.rpi1.elf
+	src/*.S src/*.c -o kernel.rpi1.elf
 	@echo $(GREEN)"Source for RPi1 compiled."$(NOCOLOR)
 	$(call convert,rpi1)
+	$(call disassemble,rpi1)
 
 rpi2:
 	@echo $(YELLOW)"Compiling..."$(NOCOLOR)
@@ -60,9 +60,10 @@ rpi2:
 	-mfpu=neon-vfpv4 \
 	-march=armv7-a \
 	-mtune=cortex-a7 \
-	*.S src/*.c -o kernel.rpi2.elf
+	src/*.S src/*.c -o kernel.rpi2.elf
 	@echo $(GREEN)"Source for RPi2 compiled."$(NOCOLOR)
 	$(call convert,rpi2)
+	$(call disassemble,rpi2)
 
 # rpi3:
 #	@echo $(YELLOW)"Compiling..."$(NOCOLOR)
@@ -70,9 +71,10 @@ rpi2:
 # 	-mfpu=crypto-neon-fp-armv8 \
 # 	-march=armv8-a+crc \
 # 	-mcpu=cortex-a53 \
-# 	*.S src/*.c -o kernel.rpi3.elf
+# 	src/*.S src/*.c -o kernel.rpi3.elf
 # 	@echo $(GREEN)"Source for RPi3 compiled."$(NOCOLOR)
 #	$(call convert,rpi3)
+#	$(call disassemble,rpi3)
 
 rpi4:
 	@echo $(YELLOW)"Compiling..."$(NOCOLOR)
@@ -80,13 +82,17 @@ rpi4:
 	-mfpu=crypto-neon-fp-armv8 \
 	-march=armv8-a+crc \
 	-mcpu=cortex-a72 \
-	*.S src/*.c -o kernel.rpi4.elf
+	src/*.S src/*.c -o kernel.rpi4.elf
 	@echo $(GREEN)"Source for RPi4 compiled."$(NOCOLOR)
 	$(call convert,rpi4)
+	$(call disassemble,rpi4)
 
 clean:
 	@rm -rf *.elf
-	@echo $(RED)".elf files deleted."$(NOCOLOR)
+	@echo $(RED)"ELF output files deleted."$(NOCOLOR)
+
+	@rm -rf *.asm
+	@echo $(RED)"Disassembled files deleted."$(NOCOLOR)
 
 	@rm -rf kernel.img
 	@echo $(RED)"kernel.img deleted."$(NOCOLOR)

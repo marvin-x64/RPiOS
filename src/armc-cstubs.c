@@ -108,7 +108,7 @@ int _fstat( int file, struct stat *st )
 /* Process-ID; this is sometimes used to generate strings unlikely to conflict
    with other processes. Minimal implementation, for a system without
    processes: */
-int getpid( void )
+int _getpid( void )
 {
     return 1;
 }
@@ -124,7 +124,7 @@ int _isatty(int file)
 
 
 /* Send a signal. Minimal implementation: */
-int kill( int pid, int sig )
+int _kill( int pid, int sig )
 {
     errno = EINVAL;
     return -1;
